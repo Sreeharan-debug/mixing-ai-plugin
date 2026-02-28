@@ -69,7 +69,7 @@ python src/main.py
 
 ## 📌 Version
 
-**V1.3 — Analysis + Visualization**
+**V1.4 — Smoothed Visualization + Log-Scale Spectrum**
 
 ---
 
