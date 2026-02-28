@@ -16,15 +16,21 @@ def main():
     y1, sr1 = load_audio(USER_FILE)
     y2, sr2 = load_audio(REF_FILE)
 
-    # 🔥 updated call
     results = analyze_mix(y1, sr1, y2, sr2, OUTPUT_DIR)
 
     print("\n🎧 MIX ANALYSIS REPORT:\n")
 
+    # 🔥 Clean formatted output
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         for r in results:
-            print("- " + r)
-            f.write("- " + r + "\n")
+            if r.startswith("---") or r.startswith("\n---"):
+                print(r.strip())
+                f.write(r.strip() + "\n")
+            elif r.strip() == "":
+                continue
+            else:
+                print("- " + r)
+                f.write("- " + r + "\n")
 
 
 if __name__ == "__main__":

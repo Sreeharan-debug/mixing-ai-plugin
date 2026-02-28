@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# 🔥 Normalize audio
 def normalize_audio(y):
     max_val = np.max(np.abs(y))
     return y / max_val if max_val != 0 else y
@@ -19,6 +18,10 @@ def band_energy(freqs, fft, low, high):
     return np.mean(fft[idx]) if len(idx[0]) > 0 else 0
 
 
+def smooth(data, window_size=100):
+    return np.convolve(data, np.ones(window_size)/window_size, mode='same')
+
+
 def get_severity(confidence):
     if confidence < 30:
         return "Mild"
@@ -28,12 +31,13 @@ def get_severity(confidence):
         return "Severe"
 
 
-# 🔥 Smooth spectrum
-def smooth(data, window_size=100):
-    return np.convolve(data, np.ones(window_size)/window_size, mode='same')
+# 🔥 Convert ratio → score
+def get_score(ratio, ideal=1.0):
+    diff = abs(ratio - ideal)
+    score = max(0, 100 - diff * 100)
+    return min(score, 100)
 
 
-# 📊 SMART GRAPH (V1.6)
 def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path,
                   show_low=False, low_intensity=0.1,
                   show_mud=False, mud_intensity=0.1):
@@ -49,7 +53,6 @@ def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path,
     plt.xscale("log")
     plt.xlim(20, 10000)
 
-    # 🔥 Dynamic highlighting
     if show_low:
         plt.axvspan(20, 120, alpha=low_intensity, label="Low-End Issue")
 
@@ -69,7 +72,6 @@ def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path,
 
 def analyze_mix(y1, sr1, y2, sr2, output_dir):
 
-    # Normalize
     y1 = normalize_audio(y1)
     y2 = normalize_audio(y2)
 
@@ -78,52 +80,17 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
 
     report = []
 
-    # 🔥 Smart flags
     show_low = False
     show_mud = False
     low_intensity = 0.1
     mud_intensity = 0.1
 
-    # 🎯 LOW-MID (Mud)
-    user_mud = band_energy(freqs1, fft1, 200, 500)
-    ref_mud = band_energy(freqs2, fft2, 200, 500)
-
-    mud_ratio = user_mud / ref_mud if ref_mud != 0 else 0
-
-    if mud_ratio > 1.2:
-        confidence = min((mud_ratio - 1.2) * 100, 100)
-        severity = get_severity(confidence)
-
-        show_mud = True
-        mud_intensity = min(0.1 + confidence / 200, 0.5)
-
-        report.append(
-            f"Your mix has excessive low-mid energy (200–500 Hz), which may cause muddiness. "
-            f"Try reducing 250–400 Hz on instruments like guitars, pads, or vocals. "
-            f"(Confidence: {confidence:.1f}% | Severity: {severity})"
-        )
-
-    # 🎯 PRESENCE
-    user_presence = band_energy(freqs1, fft1, 2000, 5000)
-    ref_presence = band_energy(freqs2, fft2, 2000, 5000)
-
-    presence_ratio = user_presence / ref_presence if ref_presence != 0 else 1
-
-    if presence_ratio < 0.8:
-        confidence = min((0.8 - presence_ratio) * 100, 100)
-        severity = get_severity(confidence)
-
-        report.append(
-            f"Your mix has weaker presence (2k–5k Hz) than the reference, which may cause vocals or leads to feel less forward. "
-            f"Try boosting around 2k–4k Hz slightly or reducing competing instruments. "
-            f"(Confidence: {confidence:.1f}% | Severity: {severity})"
-        )
-
     # 🎯 LOW-END
     user_low = band_energy(freqs1, fft1, 20, 120)
     ref_low = band_energy(freqs2, fft2, 20, 120)
-
     low_ratio = user_low / ref_low if ref_low != 0 else 0
+
+    low_score = get_score(low_ratio)
 
     if low_ratio > 1.3:
         confidence = min((low_ratio - 1.3) * 100, 100)
@@ -133,16 +100,55 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
         low_intensity = min(0.1 + confidence / 200, 0.5)
 
         report.append(
-            f"Your mix has excessive low-end (20–120 Hz), which may make it sound boomy or uncontrolled. "
-            f"Try tightening the bass or using sidechain compression with the kick. "
+            f"Low-End issue: Excess energy (20–120 Hz). "
             f"(Confidence: {confidence:.1f}% | Severity: {severity})"
         )
 
-    # No issues fallback
-    if not report:
-        report.append("Your mix is well-balanced compared to the reference. No major issues detected.")
+    # 🎯 LOW-MID (Mud)
+    user_mud = band_energy(freqs1, fft1, 200, 500)
+    ref_mud = band_energy(freqs2, fft2, 200, 500)
+    mud_ratio = user_mud / ref_mud if ref_mud != 0 else 0
 
-    # 📊 Generate graph
+    mud_score = get_score(mud_ratio)
+
+    if mud_ratio > 1.2:
+        confidence = min((mud_ratio - 1.2) * 100, 100)
+        severity = get_severity(confidence)
+
+        show_mud = True
+        mud_intensity = min(0.1 + confidence / 200, 0.5)
+
+        report.append(
+            f"Low-Mid issue: Muddiness (200–500 Hz). "
+            f"(Confidence: {confidence:.1f}% | Severity: {severity})"
+        )
+
+    # 🎯 PRESENCE
+    user_presence = band_energy(freqs1, fft1, 2000, 5000)
+    ref_presence = band_energy(freqs2, fft2, 2000, 5000)
+    presence_ratio = user_presence / ref_presence if ref_presence != 0 else 1
+
+    presence_score = get_score(presence_ratio)
+
+    if presence_ratio < 0.8:
+        confidence = min((0.8 - presence_ratio) * 100, 100)
+        severity = get_severity(confidence)
+
+        report.append(
+            f"Presence issue: Weak vocals/leads (2k–5k Hz). "
+            f"(Confidence: {confidence:.1f}% | Severity: {severity})"
+        )
+
+    # 🔥 ADD SCORES
+    report.append("\n--- MIX SCORES ---")
+    report.append(f"Low-End Score: {low_score:.1f}/100")
+    report.append(f"Low-Mid Score: {mud_score:.1f}/100")
+    report.append(f"Presence Score: {presence_score:.1f}/100")
+
+    overall_score = (low_score + mud_score + presence_score) / 3
+    report.append(f"\nOverall Mix Score: {overall_score:.1f}/100")
+
+    # 📊 GRAPH
     graph_path = os.path.join(output_dir, "spectrum.png")
 
     plot_spectrum(

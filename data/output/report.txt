@@ -1,1 +1,7 @@
-- Your mix has excessive low-mid energy (200–500 Hz), which may cause muddiness. Try reducing 250–400 Hz on instruments like guitars, pads, or vocals. (Confidence: 18.8% | Severity: Mild)
+- Low-Mid issue: Muddiness (200–500 Hz). (Confidence: 18.8% | Severity: Mild)
+--- MIX SCORES ---
+- Low-End Score: 91.0/100
+- Low-Mid Score: 61.2/100
+- Presence Score: 99.4/100
+- 
+Overall Mix Score: 83.9/100

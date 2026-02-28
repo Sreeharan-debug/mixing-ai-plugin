@@ -1,4 +1,4 @@
-# 🎧 AI Mixing Assistant (V1.6)
+# 🎧 AI Mixing Assistant (V1.7)
 
 ## 🧠 Overview
 
@@ -15,8 +15,10 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 * 📉 Confidence & severity scoring
 * 💡 Actionable suggestions (what to fix)
 * 🎛️ Smoothed + log-scale spectrum visualization (plugin-style)
-* 🎯 Visual problem zone highlighting (low-end & mud regions)
-* 🧠 Smart highlighting (only shows problem zones when detected)
+* 🎯 Smart problem zone highlighting (context-aware)
+* 📊 Multi-band scoring system
+* 🧠 Overall mix quality score
+
 ---
 
 ## 🧠 How It Works
@@ -26,7 +28,9 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 3. Performs frequency analysis (FFT)
 4. Detects imbalances in key frequency bands
 5. Generates human-readable insights
-6. Visualizes spectrum with highlighted problem zones
+6. Assigns scores to each frequency band
+7. Calculates an overall mix quality score
+8. Visualizes spectrum with intelligent highlighting
 
 ---
 
@@ -34,9 +38,20 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 
 ### 🎧 Analysis Report
 
-* Your mix has excessive low-mid energy (200–500 Hz), which may cause muddiness.
-  Try reducing 250–400 Hz on instruments like guitars, pads, or vocals.
+* Low-Mid issue: Muddiness (200–500 Hz).
   *(Confidence: 18.8% | Severity: Mild)*
+
+---
+
+### 📊 Mix Scores
+
+* Low-End Score: 91.0/100
+* Low-Mid Score: 61.2/100
+* Presence Score: 99.4/100
+
+**Overall Mix Score: 83.9/100**
+
+---
 
 ### 📈 Spectrum Graph
 
@@ -55,7 +70,7 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 
 ## ▶️ How to Run
 
-```bash
+```bash id="z3m7k8"
 python src/main.py
 ```
 
@@ -64,13 +79,13 @@ python src/main.py
 ## 📁 Output
 
 * `data/output/report.txt` → Analysis report
-* `data/output/spectrum.png` → Spectrum visualization with highlighted zones
+* `data/output/spectrum.png` → Spectrum visualization with smart highlighting
 
 ---
 
 ## 📌 Version
 
-**V1.6 — Context-Aware Visualization with Smart Highlighting**
+**V1.7 — Intelligent Scoring + Context-Aware Visualization**
 
 ---
 
