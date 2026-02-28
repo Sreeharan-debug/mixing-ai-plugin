@@ -1,4 +1,4 @@
-# 🎧 AI Mixing Assistant (V1.3)
+# 🎧 AI Mixing Assistant (V1.5)
 
 ## 🧠 Overview
 
@@ -14,7 +14,8 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 * 📊 Frequency-based issue detection
 * 📉 Confidence & severity scoring
 * 💡 Actionable suggestions (what to fix)
-* 📈 Spectrum visualization (graph output)
+* 🎛️ Smoothed + log-scale spectrum visualization (plugin-style)
+* 🎯 Visual problem zone highlighting (low-end & mud regions)
 
 ---
 
@@ -25,7 +26,7 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 3. Performs frequency analysis (FFT)
 4. Detects imbalances in key frequency bands
 5. Generates human-readable insights
-6. Outputs a spectrum comparison graph
+6. Visualizes spectrum with highlighted problem zones
 
 ---
 
@@ -63,13 +64,13 @@ python src/main.py
 ## 📁 Output
 
 * `data/output/report.txt` → Analysis report
-* `data/output/spectrum.png` → Spectrum comparison graph
+* `data/output/spectrum.png` → Spectrum visualization with highlighted zones
 
 ---
 
 ## 📌 Version
 
-**V1.4 — Smoothed Visualization + Log-Scale Spectrum**
+**V1.5 — Visual Intelligence + Problem Zone Highlighting**
 
 ---
 
