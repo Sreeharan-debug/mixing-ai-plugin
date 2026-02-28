@@ -1,55 +1,80 @@
 import streamlit as st
-import os
-from audio_loader import load_audio
+import librosa
+import numpy as np
+import matplotlib.pyplot as plt
+
 from analysis import analyze_mix
 
 st.set_page_config(page_title="AI Mixing Assistant", layout="wide")
 
 st.title("🎧 AI Mixing Assistant")
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUTPUT_DIR = os.path.join(BASE_DIR, "data", "output")
+col1, col2 = st.columns(2)
 
-# Upload files
-user_file = st.file_uploader("Upload Your Mix (user.wav)", type=["wav"])
-ref_file = st.file_uploader("Upload Reference Track (ref.wav)", type=["wav"])
+with col1:
+    user_file = st.file_uploader("Upload Your Mix (WAV)", type=["wav"])
+
+with col2:
+    ref_file = st.file_uploader("Upload Reference Track (WAV)", type=["wav"])
 
 if user_file and ref_file:
-
-    # Save uploaded files temporarily
-    user_path = os.path.join(BASE_DIR, "data", "input", "temp_user.wav")
-    ref_path = os.path.join(BASE_DIR, "data", "input", "temp_ref.wav")
-
-    with open(user_path, "wb") as f:
-        f.write(user_file.read())
-
-    with open(ref_path, "wb") as f:
-        f.write(ref_file.read())
-
     if st.button("Analyze Mix"):
 
-        y1, sr1 = load_audio(user_path)
-        y2, sr2 = load_audio(ref_path)
+        y1, sr1 = librosa.load(user_file, sr=None)
+        y2, sr2 = librosa.load(ref_file, sr=None)
 
-        results = analyze_mix(y1, sr1, y2, sr2, OUTPUT_DIR)
+        results, scores = analyze_mix(y1, sr1, y2, sr2)
 
-        st.subheader("🧠 Analysis Report")
+        # 🎯 WHAT TO FIX
+        st.subheader("🎯 What to Fix First")
 
-        for r in results:
-            r = r.strip()
+        if results["issues"]:
+            st.error(results["issues"][0])
+        else:
+            st.success("No major issues detected 🎉")
 
-            if (
-                r.startswith("---")
-                or "Overall Mix Score" in r
-                or "Reference Match" in r
-            ):
-                st.markdown(f"**{r}**")
-            else:
-                st.write("• " + r)
+        # 📊 SCORES
+        st.subheader("📊 Mix Scores")
 
-        # Show graph
-        graph_path = os.path.join(OUTPUT_DIR, "spectrum.png")
+        st.progress(scores["low"] / 100)
+        st.write(f"Low-End: {scores['low']}")
 
-        if os.path.exists(graph_path):
-            st.subheader("📊 Spectrum Analysis")
-            st.image(graph_path, use_column_width=True)
+        st.progress(scores["lowmid"] / 100)
+        st.write(f"Low-Mid: {scores['lowmid']}")
+
+        st.progress(scores["presence"] / 100)
+        st.write(f"Presence: {scores['presence']}")
+
+        st.progress(scores["overall"] / 100)
+        st.write(f"Overall: {scores['overall']}")
+
+        st.write(f"🎯 Reference Match: {results['reference_match']}%")
+
+        # 📈 SPECTRUM
+        st.subheader("📈 Spectrum Analysis")
+
+        def plot_spectrum(y, sr, label):
+            S = np.abs(librosa.stft(y))
+            S_db = librosa.amplitude_to_db(S, ref=np.max)
+            freqs = librosa.fft_frequencies(sr=sr)
+            avg = np.mean(S_db, axis=1)
+            return freqs, avg
+
+        f1, s1 = plot_spectrum(y1, sr1, "User")
+        f2, s2 = plot_spectrum(y2, sr2, "Ref")
+
+        fig, ax = plt.subplots()
+        ax.plot(f1, s1, label="User Mix")
+        ax.plot(f2, s2, label="Reference")
+
+        ax.set_xscale("log")
+        ax.set_xlabel("Frequency (Hz)")
+        ax.set_ylabel("Amplitude (dB)")
+        ax.set_title("Frequency Spectrum (Log Scale)")
+        ax.legend()
+
+        # Highlight regions
+        ax.axvspan(20, 120, alpha=0.1)
+        ax.axvspan(200, 500, alpha=0.1, color='red')
+
+        st.pyplot(fig)

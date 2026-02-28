@@ -1,5 +1,5 @@
 import librosa
 
-def load_audio(file_path):
-    y, sr = librosa.load(file_path, sr=None, mono=True)
+def load_audio(file, sr=22050):
+    y, sr = librosa.load(file, sr=sr, mono=True)
     return y, sr
