@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# 🔥 Normalize audio
 def normalize_audio(y):
     max_val = np.max(np.abs(y))
     return y / max_val if max_val != 0 else y
@@ -32,14 +31,12 @@ def get_severity(confidence):
         return "Severe"
 
 
-# 🔥 Convert ratio → score
 def get_score(ratio, ideal=1.0):
     diff = abs(ratio - ideal)
     score = max(0, 100 - diff * 100)
     return min(score, 100)
 
 
-# 📊 Smart graph (V1.6+)
 def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path,
                   show_low=False, low_intensity=0.1,
                   show_mud=False, mud_intensity=0.1):
@@ -87,11 +84,10 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
     low_intensity = 0.1
     mud_intensity = 0.1
 
-    # 🎯 LOW-END
+    # LOW-END
     user_low = band_energy(freqs1, fft1, 20, 120)
     ref_low = band_energy(freqs2, fft2, 20, 120)
     low_ratio = user_low / ref_low if ref_low != 0 else 0
-
     low_score = get_score(low_ratio)
 
     if low_ratio > 1.3:
@@ -106,11 +102,10 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
             f"(Confidence: {confidence:.1f}% | Severity: {severity})"
         )
 
-    # 🎯 LOW-MID (Mud)
+    # LOW-MID (MUD)
     user_mud = band_energy(freqs1, fft1, 200, 500)
     ref_mud = band_energy(freqs2, fft2, 200, 500)
     mud_ratio = user_mud / ref_mud if ref_mud != 0 else 0
-
     mud_score = get_score(mud_ratio)
 
     if mud_ratio > 1.2:
@@ -125,11 +120,10 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
             f"(Confidence: {confidence:.1f}% | Severity: {severity})"
         )
 
-    # 🎯 PRESENCE
+    # PRESENCE
     user_presence = band_energy(freqs1, fft1, 2000, 5000)
     ref_presence = band_energy(freqs2, fft2, 2000, 5000)
     presence_ratio = user_presence / ref_presence if ref_presence != 0 else 1
-
     presence_score = get_score(presence_ratio)
 
     if presence_ratio < 0.8:
@@ -141,7 +135,39 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
             f"(Confidence: {confidence:.1f}% | Severity: {severity})"
         )
 
-    # 🔥 SCORES
+    # 🔥 MASKING DETECTION
+
+    # Kick vs Bass (60–120 Hz)
+    user_kb = band_energy(freqs1, fft1, 60, 120)
+    ref_kb = band_energy(freqs2, fft2, 60, 120)
+    kb_ratio = user_kb / ref_kb if ref_kb != 0 else 0
+
+    if kb_ratio > 1.4:
+        confidence = min((kb_ratio - 1.4) * 100, 100)
+        severity = get_severity(confidence)
+
+        report.append(
+            f"Masking detected: Kick and bass overlap in 60–120 Hz. "
+            f"Try EQ separation or sidechain compression. "
+            f"(Confidence: {confidence:.1f}% | Severity: {severity})"
+        )
+
+    # Vocal masking (2k–5k Hz)
+    user_vocal = band_energy(freqs1, fft1, 2000, 5000)
+    ref_vocal = band_energy(freqs2, fft2, 2000, 5000)
+    vocal_ratio = user_vocal / ref_vocal if ref_vocal != 0 else 1
+
+    if vocal_ratio > 1.3:
+        confidence = min((vocal_ratio - 1.3) * 100, 100)
+        severity = get_severity(confidence)
+
+        report.append(
+            f"Masking detected: Instruments overpower vocals (2k–5k Hz). "
+            f"Try reducing competing elements or boosting vocals. "
+            f"(Confidence: {confidence:.1f}% | Severity: {severity})"
+        )
+
+    # SCORES
     report.append("\n--- MIX SCORES ---")
     report.append(f"Low-End Score: {low_score:.1f}/100")
     report.append(f"Low-Mid Score: {mud_score:.1f}/100")
@@ -150,11 +176,10 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
     overall_score = (low_score + mud_score + presence_score) / 3
     report.append(f"\nOverall Mix Score: {overall_score:.1f}/100")
 
-    # 🔥 V1.8 FEATURE
     match_percent = overall_score
     report.append(f"Reference Match: {match_percent:.1f}%")
 
-    # 📊 GRAPH
+    # GRAPH
     graph_path = os.path.join(output_dir, "spectrum.png")
 
     plot_spectrum(
