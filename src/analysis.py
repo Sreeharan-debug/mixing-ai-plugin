@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# 🔥 Normalize audio (fix loudness bias)
+# 🔥 Normalize audio
 def normalize_audio(y):
     max_val = np.max(np.abs(y))
     return y / max_val if max_val != 0 else y
@@ -33,10 +33,11 @@ def smooth(data, window_size=100):
     return np.convolve(data, np.ones(window_size)/window_size, mode='same')
 
 
-# 📊 FINAL GRAPH FUNCTION (V1.5)
-def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path):
+# 📊 SMART GRAPH (V1.6)
+def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path,
+                  show_low=False, low_intensity=0.1,
+                  show_mud=False, mud_intensity=0.1):
 
-    # Smooth signals
     fft1 = smooth(fft1)
     fft2 = smooth(fft2)
 
@@ -45,17 +46,19 @@ def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path):
     plt.plot(freqs1, fft1, label="User Mix", alpha=0.8)
     plt.plot(freqs2, fft2, label="Reference", alpha=0.8)
 
-    # Log scale (like real EQ plugins)
     plt.xscale("log")
     plt.xlim(20, 10000)
 
-    # 🔥 Highlight zones
-    plt.axvspan(20, 120, alpha=0.1, label="Low-End Zone")
-    plt.axvspan(200, 500, alpha=0.1, label="Mud Zone")
+    # 🔥 Dynamic highlighting
+    if show_low:
+        plt.axvspan(20, 120, alpha=low_intensity, label="Low-End Issue")
+
+    if show_mud:
+        plt.axvspan(200, 500, alpha=mud_intensity, label="Mud Issue")
 
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Amplitude")
-    plt.title("Frequency Spectrum with Problem Zones")
+    plt.title("Smart Frequency Spectrum Analysis")
 
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
@@ -75,6 +78,12 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
 
     report = []
 
+    # 🔥 Smart flags
+    show_low = False
+    show_mud = False
+    low_intensity = 0.1
+    mud_intensity = 0.1
+
     # 🎯 LOW-MID (Mud)
     user_mud = band_energy(freqs1, fft1, 200, 500)
     ref_mud = band_energy(freqs2, fft2, 200, 500)
@@ -84,6 +93,9 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
     if mud_ratio > 1.2:
         confidence = min((mud_ratio - 1.2) * 100, 100)
         severity = get_severity(confidence)
+
+        show_mud = True
+        mud_intensity = min(0.1 + confidence / 200, 0.5)
 
         report.append(
             f"Your mix has excessive low-mid energy (200–500 Hz), which may cause muddiness. "
@@ -117,6 +129,9 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
         confidence = min((low_ratio - 1.3) * 100, 100)
         severity = get_severity(confidence)
 
+        show_low = True
+        low_intensity = min(0.1 + confidence / 200, 0.5)
+
         report.append(
             f"Your mix has excessive low-end (20–120 Hz), which may make it sound boomy or uncontrolled. "
             f"Try tightening the bass or using sidechain compression with the kick. "
@@ -129,6 +144,13 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
 
     # 📊 Generate graph
     graph_path = os.path.join(output_dir, "spectrum.png")
-    plot_spectrum(freqs1, fft1, freqs2, fft2, graph_path)
+
+    plot_spectrum(
+        freqs1, fft1, freqs2, fft2, graph_path,
+        show_low=show_low,
+        low_intensity=low_intensity,
+        show_mud=show_mud,
+        mud_intensity=mud_intensity
+    )
 
     return report
