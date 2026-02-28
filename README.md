@@ -1,4 +1,4 @@
-# 🎧 AI Mixing Assistant (V1.7)
+# 🎧 AI Mixing Assistant (V1.8)
 
 ## 🧠 Overview
 
@@ -18,6 +18,7 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 * 🎯 Smart problem zone highlighting (context-aware)
 * 📊 Multi-band scoring system
 * 🧠 Overall mix quality score
+* 🔥 Reference match percentage
 
 ---
 
@@ -29,8 +30,9 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 4. Detects imbalances in key frequency bands
 5. Generates human-readable insights
 6. Assigns scores to each frequency band
-7. Calculates an overall mix quality score
-8. Visualizes spectrum with intelligent highlighting
+7. Calculates overall mix quality score
+8. Computes similarity to reference (match %)
+9. Visualizes spectrum with intelligent highlighting
 
 ---
 
@@ -50,6 +52,7 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 * Presence Score: 99.4/100
 
 **Overall Mix Score: 83.9/100**
+**Reference Match: 83.9%**
 
 ---
 
@@ -70,7 +73,7 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 
 ## ▶️ How to Run
 
-```bash id="z3m7k8"
+```bash id="runv18readme"
 python src/main.py
 ```
 
@@ -85,7 +88,7 @@ python src/main.py
 
 ## 📌 Version
 
-**V1.7 — Intelligent Scoring + Context-Aware Visualization**
+**V1.8 — Intelligent Scoring + Reference Matching + Smart Visualization**
 
 ---
 

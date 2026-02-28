@@ -20,14 +20,24 @@ def main():
 
     print("\n🎧 MIX ANALYSIS REPORT:\n")
 
-    # 🔥 Clean formatted output
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         for r in results:
-            if r.startswith("---") or r.startswith("\n---"):
-                print(r.strip())
-                f.write(r.strip() + "\n")
-            elif r.strip() == "":
+            r = r.strip()
+
+            # 🔥 Headings & key lines (no dash)
+            if (
+                r.startswith("---")
+                or "Overall Mix Score" in r
+                or "Reference Match" in r
+            ):
+                print(r)
+                f.write(r + "\n")
+
+            # 🔥 Skip empty lines
+            elif r == "":
                 continue
+
+            # 🔥 Normal bullet points
             else:
                 print("- " + r)
                 f.write("- " + r + "\n")

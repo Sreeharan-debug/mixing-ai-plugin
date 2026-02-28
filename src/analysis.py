@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
+# 🔥 Normalize audio
 def normalize_audio(y):
     max_val = np.max(np.abs(y))
     return y / max_val if max_val != 0 else y
@@ -38,6 +39,7 @@ def get_score(ratio, ideal=1.0):
     return min(score, 100)
 
 
+# 📊 Smart graph (V1.6+)
 def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path,
                   show_low=False, low_intensity=0.1,
                   show_mud=False, mud_intensity=0.1):
@@ -139,7 +141,7 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
             f"(Confidence: {confidence:.1f}% | Severity: {severity})"
         )
 
-    # 🔥 ADD SCORES
+    # 🔥 SCORES
     report.append("\n--- MIX SCORES ---")
     report.append(f"Low-End Score: {low_score:.1f}/100")
     report.append(f"Low-Mid Score: {mud_score:.1f}/100")
@@ -147,6 +149,10 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
 
     overall_score = (low_score + mud_score + presence_score) / 3
     report.append(f"\nOverall Mix Score: {overall_score:.1f}/100")
+
+    # 🔥 V1.8 FEATURE
+    match_percent = overall_score
+    report.append(f"Reference Match: {match_percent:.1f}%")
 
     # 📊 GRAPH
     graph_path = os.path.join(output_dir, "spectrum.png")
