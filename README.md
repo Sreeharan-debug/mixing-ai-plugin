@@ -1,4 +1,4 @@
-# 🎧 AI Mixing Assistant (V1.5)
+# 🎧 AI Mixing Assistant (V1.6)
 
 ## 🧠 Overview
 
@@ -16,7 +16,7 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 * 💡 Actionable suggestions (what to fix)
 * 🎛️ Smoothed + log-scale spectrum visualization (plugin-style)
 * 🎯 Visual problem zone highlighting (low-end & mud regions)
-
+* 🧠 Smart highlighting (only shows problem zones when detected)
 ---
 
 ## 🧠 How It Works
@@ -70,7 +70,7 @@ python src/main.py
 
 ## 📌 Version
 
-**V1.5 — Visual Intelligence + Problem Zone Highlighting**
+**V1.6 — Context-Aware Visualization with Smart Highlighting**
 
 ---
 
