@@ -28,15 +28,15 @@ def get_severity(confidence):
         return "Severe"
 
 
-# 🔥 NEW: smoothing function
+# 🔥 Smooth spectrum
 def smooth(data, window_size=100):
     return np.convolve(data, np.ones(window_size)/window_size, mode='same')
 
 
-# 📊 UPDATED GRAPH FUNCTION (V1.4)
+# 📊 FINAL GRAPH FUNCTION (V1.5)
 def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path):
 
-    # 🔥 Smooth signals
+    # Smooth signals
     fft1 = smooth(fft1)
     fft2 = smooth(fft2)
 
@@ -45,13 +45,17 @@ def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path):
     plt.plot(freqs1, fft1, label="User Mix", alpha=0.8)
     plt.plot(freqs2, fft2, label="Reference", alpha=0.8)
 
-    # 🔥 Log frequency scale (like EQ plugins)
+    # Log scale (like real EQ plugins)
     plt.xscale("log")
     plt.xlim(20, 10000)
 
+    # 🔥 Highlight zones
+    plt.axvspan(20, 120, alpha=0.1, label="Low-End Zone")
+    plt.axvspan(200, 500, alpha=0.1, label="Mud Zone")
+
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Amplitude")
-    plt.title("Smoothed Frequency Spectrum Comparison")
+    plt.title("Frequency Spectrum with Problem Zones")
 
     plt.legend()
     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
@@ -62,7 +66,7 @@ def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path):
 
 def analyze_mix(y1, sr1, y2, sr2, output_dir):
 
-    # 🔥 Normalize both signals
+    # Normalize
     y1 = normalize_audio(y1)
     y2 = normalize_audio(y2)
 
@@ -71,7 +75,7 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
 
     report = []
 
-    # 🎯 LOW-MID (Mud: 200–500 Hz)
+    # 🎯 LOW-MID (Mud)
     user_mud = band_energy(freqs1, fft1, 200, 500)
     ref_mud = band_energy(freqs2, fft2, 200, 500)
 
@@ -87,7 +91,7 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
             f"(Confidence: {confidence:.1f}% | Severity: {severity})"
         )
 
-    # 🎯 PRESENCE (2k–5k Hz)
+    # 🎯 PRESENCE
     user_presence = band_energy(freqs1, fft1, 2000, 5000)
     ref_presence = band_energy(freqs2, fft2, 2000, 5000)
 
@@ -103,7 +107,7 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
             f"(Confidence: {confidence:.1f}% | Severity: {severity})"
         )
 
-    # 🎯 LOW END (20–120 Hz)
+    # 🎯 LOW-END
     user_low = band_energy(freqs1, fft1, 20, 120)
     ref_low = band_energy(freqs2, fft2, 20, 120)
 
@@ -119,7 +123,7 @@ def analyze_mix(y1, sr1, y2, sr2, output_dir):
             f"(Confidence: {confidence:.1f}% | Severity: {severity})"
         )
 
-    # ✅ No issues fallback
+    # No issues fallback
     if not report:
         report.append("Your mix is well-balanced compared to the reference. No major issues detected.")
 
