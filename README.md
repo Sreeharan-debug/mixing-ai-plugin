@@ -1,10 +1,22 @@
-# 🎧 AI Mixing Assistant (V1.9)
+# 🎧 AI Mixing Assistant (V2.0)
 
 ## 🧠 Overview
 
-AI-powered tool that analyzes your mix by comparing it with a reference track and provides intelligent, human-readable feedback.
+AI-powered application that analyzes your mix by comparing it with a reference track and provides intelligent, human-readable feedback.
 
-This project focuses on **explainable mix diagnostics** — not auto-mixing — helping producers understand *why* their mix sounds off and *how to fix it*.
+Now upgraded with a **real user interface**, making it easy for producers to upload tracks, analyze mixes, and visualize results instantly.
+
+This project focuses on **explainable mix diagnostics** — not auto-mixing — helping users understand *why* their mix sounds off and *how to fix it*.
+
+---
+
+## 🚀 What’s New in V2.0
+
+* 🎛️ Interactive UI using Streamlit
+* 📂 Drag & drop audio upload
+* ⚡ One-click mix analysis
+* 📊 Real-time spectrum visualization
+* 🧠 Clean formatted analysis report
 
 ---
 
@@ -13,28 +25,30 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 * 🎚️ Mix vs Reference comparison
 * 📊 Frequency-based issue detection
 * 📉 Confidence & severity scoring
-* 💡 Actionable suggestions (what to fix)
-* 🎛️ Smoothed + log-scale spectrum visualization (plugin-style)
-* 🎯 Smart problem zone highlighting (context-aware)
+* 💡 Actionable suggestions
+* 🎛️ Smoothed + log-scale spectrum visualization
+* 🎯 Smart problem zone highlighting
 * 📊 Multi-band scoring system
-* 🧠 Overall mix quality score
+* 🧠 Overall mix score
 * 🔥 Reference match percentage
 * 🎧 Masking detection (kick/bass & vocal regions)
+* 🌐 Interactive web interface
 
 ---
 
 ## 🧠 How It Works
 
-1. Loads user mix and reference track
-2. Normalizes audio for fair comparison
-3. Performs frequency analysis (FFT)
-4. Detects imbalances in key frequency bands
-5. Identifies masking between elements
-6. Generates human-readable insights
-7. Assigns scores to each frequency band
-8. Calculates overall mix quality score
-9. Computes similarity to reference (match %)
-10. Visualizes spectrum with intelligent highlighting
+1. Upload your mix (`user.wav`)
+2. Upload reference track (`ref.wav`)
+3. Click **Analyze Mix**
+4. System:
+
+   * Normalizes audio
+   * Performs frequency analysis
+   * Detects issues & masking
+   * Calculates scores
+   * Generates insights
+   * Displays spectrum graph
 
 ---
 
@@ -58,7 +72,7 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 
 ---
 
-### 📈 Spectrum Graph
+### 📈 Spectrum Visualization
 
 ![Spectrum](data/output/spectrum.png)
 
@@ -67,6 +81,7 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 ## 🛠️ Tech Stack
 
 * Python
+* Streamlit
 * Librosa
 * NumPy
 * Matplotlib
@@ -75,8 +90,24 @@ This project focuses on **explainable mix diagnostics** — not auto-mixing — 
 
 ## ▶️ How to Run
 
-```bash
-python src/main.py
+### 1. Activate environment
+
+```bash id="runv20a"
+venv\Scripts\activate
+```
+
+### 2. Install dependencies
+
+```bash id="runv20b"
+pip install -r requirements.txt
+```
+
+*(or manually install: streamlit, librosa, numpy, matplotlib)*
+
+### 3. Run app
+
+```bash id="runv20c"
+streamlit run src/app.py
 ```
 
 ---
@@ -84,18 +115,28 @@ python src/main.py
 ## 📁 Output
 
 * `data/output/report.txt` → Analysis report
-* `data/output/spectrum.png` → Spectrum visualization with smart highlighting
+* `data/output/spectrum.png` → Spectrum visualization
 
 ---
 
 ## 📌 Version
 
-**V1.9 — Masking Detection + Intelligent Mix Evaluation**
+**V2.0 — UI Integration (Streamlit App)**
 
 ---
 
 ## 🎯 Vision
 
-To build an **AI-powered mix mentor** that helps producers understand their mixes through clear, contextual, and actionable feedback — raising the overall quality of music production.
+To build an **AI-powered mix mentor** that helps producers understand and improve their mixes through clear, contextual, and actionable feedback.
+
+---
+
+## 🚀 Future Scope
+
+* 🎛️ Plugin-style UI (DAW-like design)
+* 🎚️ Real-time audio processing
+* 🤖 Advanced AI recommendations
+* 🌍 Web deployment
+* 📈 Track-level analysis (stems)
 
 ---
