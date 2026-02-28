@@ -9,38 +9,32 @@ OUTPUT_DIR = os.path.join(BASE_DIR, "data", "output")
 
 USER_FILE = os.path.join(INPUT_DIR, "user.wav")
 REF_FILE = os.path.join(INPUT_DIR, "ref.wav")
-OUTPUT_FILE = os.path.join(OUTPUT_DIR, "report.txt")
 
 
 def main():
     y1, sr1 = load_audio(USER_FILE)
     y2, sr2 = load_audio(REF_FILE)
 
-    results = analyze_mix(y1, sr1, y2, sr2, OUTPUT_DIR)
+    results, scores, plot_path = analyze_mix(y1, sr1, y2, sr2, OUTPUT_DIR)
 
     print("\n🎧 MIX ANALYSIS REPORT:\n")
 
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-        for r in results:
-            r = r.strip()
+    if results["priority"]:
+        p = results["priority"]
+        print(f"🎯 Priority Issue: {p['type']} ({p['range']})")
+        print(f"Why: {p['why']}")
+        print(f"Fix: {p['fix']}\n")
+    else:
+        print("✅ No major issues detected\n")
 
-            # 🔥 Headings & key lines (no dash)
-            if (
-                r.startswith("---")
-                or "Overall Mix Score" in r
-                or "Reference Match" in r
-            ):
-                print(r)
-                f.write(r + "\n")
+    print("--- MIX SCORES ---")
+    print(f"Low-End: {scores['low']}")
+    print(f"Low-Mid: {scores['mid']}")
+    print(f"Presence: {scores['high']}")
+    print(f"\nOverall: {scores['overall']}")
+    print(f"Reference Match: {scores['match']}%")
 
-            # 🔥 Skip empty lines
-            elif r == "":
-                continue
-
-            # 🔥 Normal bullet points
-            else:
-                print("- " + r)
-                f.write("- " + r + "\n")
+    print(f"\n📊 Spectrum saved at: {plot_path}")
 
 
 if __name__ == "__main__":

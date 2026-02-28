@@ -1,14 +1,20 @@
 import streamlit as st
-import librosa
-import numpy as np
-import matplotlib.pyplot as plt
+import tempfile
+import os
 
+# ✅ Correct imports (same folder)
 from analysis import analyze_mix
+from audio_loader import load_audio
 
-st.set_page_config(page_title="AI Mixing Assistant", layout="wide")
+# ---------- PAGE CONFIG ----------
+st.set_page_config(
+    page_title="AI Mixing Assistant",
+    layout="wide"
+)
 
 st.title("🎧 AI Mixing Assistant")
 
+# ---------- FILE UPLOAD ----------
 col1, col2 = st.columns(2)
 
 with col1:
@@ -17,64 +23,76 @@ with col1:
 with col2:
     ref_file = st.file_uploader("Upload Reference Track (WAV)", type=["wav"])
 
-if user_file and ref_file:
-    if st.button("Analyze Mix"):
+# ---------- ANALYZE BUTTON ----------
+if st.button("Analyze Mix"):
 
-        y1, sr1 = librosa.load(user_file, sr=None)
-        y2, sr2 = librosa.load(ref_file, sr=None)
+    if user_file and ref_file:
 
-        results, scores = analyze_mix(y1, sr1, y2, sr2)
+        # Save temp files
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f1:
+            f1.write(user_file.read())
+            user_path = f1.name
 
-        # 🎯 WHAT TO FIX
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f2:
+            f2.write(ref_file.read())
+            ref_path = f2.name
+
+        # Load audio
+        y1, sr1 = load_audio(user_path)
+        y2, sr2 = load_audio(ref_path)
+
+        # ---------- ANALYSIS ----------
+        results, scores, plot_path = analyze_mix(y1, sr1, y2, sr2)
+
+        # ---------- PRIORITY ----------
         st.subheader("🎯 What to Fix First")
 
-        if results["issues"]:
-            st.error(results["issues"][0])
+        if results["priority"]:
+            p = results["priority"]
+
+            st.error(
+                f"Priority Issue: {p['type']} ({p['range']})"
+            )
+
+            st.write(f"**Why:** {p['why']}")
+            st.write(f"**Fix:** {p['fix']}")
+
         else:
             st.success("No major issues detected 🎉")
 
-        # 📊 SCORES
+        # ---------- SCORES ----------
         st.subheader("📊 Mix Scores")
 
         st.progress(scores["low"] / 100)
         st.write(f"Low-End: {scores['low']}")
 
-        st.progress(scores["lowmid"] / 100)
-        st.write(f"Low-Mid: {scores['lowmid']}")
+        st.progress(scores["mid"] / 100)
+        st.write(f"Low-Mid: {scores['mid']}")
 
-        st.progress(scores["presence"] / 100)
-        st.write(f"Presence: {scores['presence']}")
+        st.progress(scores["high"] / 100)
+        st.write(f"Presence: {scores['high']}")
 
         st.progress(scores["overall"] / 100)
         st.write(f"Overall: {scores['overall']}")
 
-        st.write(f"🎯 Reference Match: {results['reference_match']}%")
+        st.write(f"🎯 Reference Match: {scores['match']}%")
 
-        # 📈 SPECTRUM
-        st.subheader("📈 Spectrum Analysis")
+        # ---------- SPECTRUM ----------
+        st.subheader("📉 Spectrum Analysis")
+        st.image(plot_path)
 
-        def plot_spectrum(y, sr, label):
-            S = np.abs(librosa.stft(y))
-            S_db = librosa.amplitude_to_db(S, ref=np.max)
-            freqs = librosa.fft_frequencies(sr=sr)
-            avg = np.mean(S_db, axis=1)
-            return freqs, avg
+        # ---------- ALL INSIGHTS ----------
+        st.subheader("🧠 AI Mix Insights")
 
-        f1, s1 = plot_spectrum(y1, sr1, "User")
-        f2, s2 = plot_spectrum(y2, sr2, "Ref")
+        if results["issues"]:
+            for issue in results["issues"]:
+                st.warning(
+                    f"{issue['type']} ({issue['range']}) | "
+                    f"Confidence: {issue['confidence']}% | "
+                    f"Severity: {issue['severity']}"
+                )
+        else:
+            st.info("Mix looks clean — no major problems detected.")
 
-        fig, ax = plt.subplots()
-        ax.plot(f1, s1, label="User Mix")
-        ax.plot(f2, s2, label="Reference")
-
-        ax.set_xscale("log")
-        ax.set_xlabel("Frequency (Hz)")
-        ax.set_ylabel("Amplitude (dB)")
-        ax.set_title("Frequency Spectrum (Log Scale)")
-        ax.legend()
-
-        # Highlight regions
-        ax.axvspan(20, 120, alpha=0.1)
-        ax.axvspan(200, 500, alpha=0.1, color='red')
-
-        st.pyplot(fig)
+    else:
+        st.warning("Please upload both files.")
