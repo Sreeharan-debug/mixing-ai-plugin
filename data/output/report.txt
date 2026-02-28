@@ -1,0 +1,1 @@
+- Your mix has excessive low-mid energy (200–500 Hz), which may cause muddiness. Try reducing 250–400 Hz on instruments like guitars, pads, or vocals. (Confidence: 18.8% | Severity: Mild)
