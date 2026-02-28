@@ -28,20 +28,33 @@ def get_severity(confidence):
         return "Severe"
 
 
-# 📊 Graph function
+# 🔥 NEW: smoothing function
+def smooth(data, window_size=100):
+    return np.convolve(data, np.ones(window_size)/window_size, mode='same')
+
+
+# 📊 UPDATED GRAPH FUNCTION (V1.4)
 def plot_spectrum(freqs1, fft1, freqs2, fft2, output_path):
+
+    # 🔥 Smooth signals
+    fft1 = smooth(fft1)
+    fft2 = smooth(fft2)
+
     plt.figure(figsize=(10, 6))
 
-    plt.plot(freqs1, fft1, label="User Mix", alpha=0.7)
-    plt.plot(freqs2, fft2, label="Reference", alpha=0.7)
+    plt.plot(freqs1, fft1, label="User Mix", alpha=0.8)
+    plt.plot(freqs2, fft2, label="Reference", alpha=0.8)
 
+    # 🔥 Log frequency scale (like EQ plugins)
+    plt.xscale("log")
     plt.xlim(20, 10000)
+
     plt.xlabel("Frequency (Hz)")
     plt.ylabel("Amplitude")
-    plt.title("Frequency Spectrum Comparison")
+    plt.title("Smoothed Frequency Spectrum Comparison")
 
     plt.legend()
-    plt.grid()
+    plt.grid(True, which="both", linestyle="--", linewidth=0.5)
 
     plt.savefig(output_path)
     plt.close()
