@@ -1,142 +1,178 @@
-# 🎧 AI Mixing Assistant (V2.0)
+# 🎧 AI Mixing Assistant
 
-## 🧠 Overview
-
-AI-powered application that analyzes your mix by comparing it with a reference track and provides intelligent, human-readable feedback.
-
-Now upgraded with a **real user interface**, making it easy for producers to upload tracks, analyze mixes, and visualize results instantly.
-
-This project focuses on **explainable mix diagnostics** — not auto-mixing — helping users understand *why* their mix sounds off and *how to fix it*.
+> AI-powered mix analysis tool that helps producers identify tonal issues, compare with reference tracks, and improve mix quality through intelligent feedback.
 
 ---
 
-## 🚀 What’s New in V2.0
+## 🚀 Live Concept
 
-* 🎛️ Interactive UI using Streamlit
-* 📂 Drag & drop audio upload
-* ⚡ One-click mix analysis
-* 📊 Real-time spectrum visualization
-* 🧠 Clean formatted analysis report
+Upload your mix → Compare with reference → Get actionable insights in seconds.
 
 ---
 
-## 🚀 Features
+## 🧠 Why This Exists
 
-* 🎚️ Mix vs Reference comparison
-* 📊 Frequency-based issue detection
-* 📉 Confidence & severity scoring
-* 💡 Actionable suggestions
-* 🎛️ Smoothed + log-scale spectrum visualization
-* 🎯 Smart problem zone highlighting
-* 📊 Multi-band scoring system
-* 🧠 Overall mix score
-* 🔥 Reference match percentage
-* 🎧 Masking detection (kick/bass & vocal regions)
-* 🌐 Interactive web interface
+Most producers struggle with:
+- ❌ Muddy mixes  
+- ❌ Poor low-end balance  
+- ❌ Weak presence  
+- ❌ No clear feedback  
+
+This tool solves that by acting like a **virtual mix engineer** — analyzing your track and pointing out what needs fixing.
 
 ---
 
-## 🧠 How It Works
+## ✨ Core Features
 
-1. Upload your mix (`user.wav`)
-2. Upload reference track (`ref.wav`)
-3. Click **Analyze Mix**
-4. System:
-
-   * Normalizes audio
-   * Performs frequency analysis
-   * Detects issues & masking
-   * Calculates scores
-   * Generates insights
-   * Displays spectrum graph
+### 🎯 Intelligent Mix Diagnostics
+- Detects:
+  - Low-end imbalance (20–120 Hz)
+  - Low-mid muddiness (200–500 Hz)
+  - Presence clarity (2k–5k Hz)
 
 ---
 
-## 📊 Sample Output
-
-### 🎧 Analysis Report
-
-* Low-Mid issue: Muddiness (200–500 Hz)
-  *(Confidence: 18.8% | Severity: Mild)*
+### 📊 Multi-Band Scoring Engine
+- Low-End Score  
+- Low-Mid Score  
+- Presence Score  
+- **Overall Mix Score**
 
 ---
 
-### 📊 Mix Scores
-
-* Low-End Score: 91.0/100
-* Low-Mid Score: 61.2/100
-* Presence Score: 99.4/100
-
-**Overall Mix Score: 83.9/100**
-**Reference Match: 83.9%**
+### 🎧 Reference Track Matching
+- Compare your mix with professional tracks  
+- Get a **Reference Match %**
 
 ---
 
 ### 📈 Spectrum Visualization
-
-![Spectrum](data/output/spectrum.png)
-
----
-
-## 🛠️ Tech Stack
-
-* Python
-* Streamlit
-* Librosa
-* NumPy
-* Matplotlib
+- Log-scale frequency analysis  
+- Smoothed curves (human-perception based)  
+- Highlighted problem zones  
 
 ---
 
-## ▶️ How to Run
+### ⚡ Instant Feedback UI
+- Upload `.wav` files  
+- One-click analysis  
+- Clean, real-time dashboard  
 
-### 1. Activate environment
+---
 
-```bash id="runv20a"
+## ⚡ Quick Start (Plug & Play)
+
+### 1. Clone Repo
+```bash
+git clone https://github.com/Sreeharan-debug/mixing-ai-plugin.git
+cd mixing-ai-plugin
+2. Setup Environment
+python -m venv venv
+
+Activate:
+
+Windows (CMD):
+
 venv\Scripts\activate
-```
-
-### 2. Install dependencies
-
-```bash id="runv20b"
-pip install -r requirements.txt
-```
-
-*(or manually install: streamlit, librosa, numpy, matplotlib)*
-
-### 3. Run app
-
-```bash id="runv20c"
+3. Install Dependencies
+pip install librosa numpy matplotlib streamlit soundfile
+4. Run App
 streamlit run src/app.py
-```
+5. Open in Browser
+http://localhost:8501
+🧪 Example Output
+🎧 MIX ANALYSIS REPORT:
 
----
+- Low-Mid issue: Muddiness (200–500 Hz)
 
-## 📁 Output
+--- MIX SCORES ---
+Low-End: 91.0
+Low-Mid: 61.2
+Presence: 99.4
 
-* `data/output/report.txt` → Analysis report
-* `data/output/spectrum.png` → Spectrum visualization
+Overall: 83.9
+Reference Match: 83.9%
+📁 Project Structure
+mixing-ai-plugin/
+│
+├── src/
+│   ├── app.py              # Streamlit UI
+│   ├── analysis.py         # Core analysis engine
+│   ├── audio_loader.py     # Audio processing
+│   └── main.py             # CLI version
+│
+├── outputs/                # Generated files (ignored)
+├── temp/                   # Temp files (ignored)
+│
+├── .gitignore
+├── README.md
+🛠️ Tech Stack
 
----
+Python
 
-## 📌 Version
+Librosa
 
-**V2.0 — UI Integration (Streamlit App)**
+NumPy
 
----
+Matplotlib
 
-## 🎯 Vision
+Streamlit
 
-To build an **AI-powered mix mentor** that helps producers understand and improve their mixes through clear, contextual, and actionable feedback.
+🚀 Current Version
 
----
+V2.2 — Accuracy Upgrade
 
-## 🚀 Future Scope
+Fixed spectrum scaling (true dB)
 
-* 🎛️ Plugin-style UI (DAW-like design)
-* 🎚️ Real-time audio processing
-* 🤖 Advanced AI recommendations
-* 🌍 Web deployment
-* 📈 Track-level analysis (stems)
+Improved frequency smoothing
 
----
+More reliable scoring system
+
+Clean architecture (UI vs analysis separation)
+
+🧭 Roadmap
+🔜 V2.3
+
+Perceptual weighting (human hearing model)
+
+Advanced masking detection
+
+Smarter issue prioritization
+
+🔥 Future Vision
+
+AI Chat Mixing Assistant
+
+ML-based mix evaluation
+
+Cloud-based mix analysis
+
+VST / DAW Plugin
+
+🎯 Vision
+
+To build an AI-powered mixing assistant that:
+
+Teaches producers why their mix sounds wrong
+
+Provides real-time feedback
+
+Bridges the gap between beginners and professional engineers
+
+👨‍💻 Author
+
+Sreeharan M Anilkumar
+
+Audio Engineer
+
+AI Developer
+
+Building tools for the next generation of producers
+
+⭐ Contributing
+
+Open to ideas, feedback, and collaboration.
+
+📌 License
+
+MIT License
