@@ -2,97 +2,64 @@ import streamlit as st
 import tempfile
 import os
 
-# ✅ Correct imports (same folder)
 from analysis import analyze_mix
 from audio_loader import load_audio
 
-# ---------- PAGE CONFIG ----------
-st.set_page_config(
-    page_title="AI Mixing Assistant",
-    layout="wide"
-)
-
+st.set_page_config(page_title="AI Mixing Assistant", layout="wide")
 st.title("🎧 AI Mixing Assistant")
 
-# ---------- FILE UPLOAD ----------
 col1, col2 = st.columns(2)
 
 with col1:
-    user_file = st.file_uploader("Upload Your Mix (WAV)", type=["wav"])
+    user_file = st.file_uploader("Your Mix", type=["wav"])
 
 with col2:
-    ref_file = st.file_uploader("Upload Reference Track (WAV)", type=["wav"])
+    ref_file = st.file_uploader("Reference", type=["wav"])
 
-# ---------- ANALYZE BUTTON ----------
 if st.button("Analyze Mix"):
 
     if user_file and ref_file:
 
-        # Save temp files
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f1:
+        with tempfile.NamedTemporaryFile(delete=False) as f1:
             f1.write(user_file.read())
-            user_path = f1.name
+            p1 = f1.name
 
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f2:
+        with tempfile.NamedTemporaryFile(delete=False) as f2:
             f2.write(ref_file.read())
-            ref_path = f2.name
+            p2 = f2.name
 
-        # Load audio
-        y1, sr1 = load_audio(user_path)
-        y2, sr2 = load_audio(ref_path)
+        y1, sr1 = load_audio(p1)
+        y2, sr2 = load_audio(p2)
 
-        # ---------- ANALYSIS ----------
-        results, scores, plot_path = analyze_mix(y1, sr1, y2, sr2)
+        results, scores, plot = analyze_mix(y1, sr1, y2, sr2)
 
-        # ---------- PRIORITY ----------
-        st.subheader("🎯 What to Fix First")
+        st.header("🎯 Priority")
 
         if results["priority"]:
             p = results["priority"]
-
-            st.error(
-                f"Priority Issue: {p['type']} ({p['range']})"
-            )
-
-            st.write(f"**Why:** {p['why']}")
-            st.write(f"**Fix:** {p['fix']}")
-
+            st.error(f"{p['type']} ({p['range']})")
+            st.write(p["why"])
+            st.write(p["fix"])
         else:
-            st.success("No major issues detected 🎉")
+            st.success("Clean mix")
 
-        # ---------- SCORES ----------
-        st.subheader("📊 Mix Scores")
+        st.header("📊 Scores")
 
-        st.progress(scores["low"] / 100)
-        st.write(f"Low-End: {scores['low']}")
+        for k in ["sub","low","lowmid","mid","presence","air"]:
+            st.write(f"{k}: {scores[k]}")
+            st.progress(scores[k]/100)
 
-        st.progress(scores["mid"] / 100)
-        st.write(f"Low-Mid: {scores['mid']}")
-
-        st.progress(scores["high"] / 100)
-        st.write(f"Presence: {scores['high']}")
-
-        st.progress(scores["overall"] / 100)
         st.write(f"Overall: {scores['overall']}")
+        st.progress(scores["overall"]/100)
 
-        st.write(f"🎯 Reference Match: {scores['match']}%")
+        st.write(f"Match: {scores['match']}%")
 
-        # ---------- SPECTRUM ----------
-        st.subheader("📉 Spectrum Analysis")
-        st.image(plot_path)
+        st.header("📉 Spectrum")
+        st.image(plot)
 
-        # ---------- ALL INSIGHTS ----------
-        st.subheader("🧠 AI Mix Insights")
-
-        if results["issues"]:
-            for issue in results["issues"]:
-                st.warning(
-                    f"{issue['type']} ({issue['range']}) | "
-                    f"Confidence: {issue['confidence']}% | "
-                    f"Severity: {issue['severity']}"
-                )
-        else:
-            st.info("Mix looks clean — no major problems detected.")
+        st.header("🧠 Issues")
+        for i in results["issues"]:
+            st.warning(f"{i['type']} | {i['confidence']}%")
 
     else:
-        st.warning("Please upload both files.")
+        st.warning("Upload both files")
