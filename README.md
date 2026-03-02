@@ -1,200 +1,92 @@
 # 🎧 AI Mixing Assistant
 
-> **Reference-based mix analysis with intelligent audio insights**
-> Not just analysis — this helps you *fix your mix like a pro.*
+An intelligent audio analysis tool that helps producers improve their mixes using perceptual analysis, reference comparison, and explainable insights.
 
 ---
 
-## 🚀 What is this?
+## 🚀 Features
 
-**AI Mixing Assistant** is a smart audio analysis tool that compares your mix against a reference track and tells you:
+### 🎧 Perceptual Audio Analysis
+- Frequency analysis aligned with human hearing
+- Smoothed spectrum for stable results
 
-* 🎯 What’s wrong
-* 🧠 Why it’s wrong
-* 🔧 How to fix it
+### 📊 Multi-Band Scoring
+- Sub (20–60 Hz)
+- Low (60–120 Hz)
+- Low-Mid (120–400 Hz)
+- Mid (400–2k Hz)
+- Presence (2k–5k Hz)
+- Air (5k–10k Hz)
 
-This is not auto-mixing.
-This is **learning + decision support for producers.**
+### 🧠 Intelligent Feedback
+- Detects:
+  - Muddiness
+  - Low-end imbalance
+  - Low presence
+- Provides:
+  - Explanation (WHY)
+  - Actionable fix (HOW)
 
----
+### ⚡ Masking Detection
+Identifies frequency clashes where instruments overlap and lose clarity.
 
-## ✨ Features
+### 🔊 Loudness Analysis (LUFS)
+Compares perceived loudness with reference tracks.
 
-### 🎚️ Spectrum Analysis
+### 🎯 Priority Engine
+Ranks issues based on severity and confidence to guide workflow.
 
-* Log-scale frequency comparison
-* User vs Reference visualization
-* Highlighted problem regions
-
-### 🧠 AI Mix Insights (Core Feature)
-
-* Detects:
-
-  * Low-end imbalance (20–120 Hz)
-  * Muddiness (200–500 Hz)
-  * Presence issues (2k–5k Hz)
-* Gives:
-
-  * Severity
-  * Confidence
-  * Explanation
-  * Fix suggestions
-
-### 📊 Mix Scoring System
-
-* Low-End Score
-* Low-Mid Score
-* Presence Score
-* Overall Score
-* Reference Match %
-
-### 🎯 Priority Fix System
-
-* Highlights the **most important issue first**
-* Helps producers focus on what matters
+### 📉 Spectrum Visualization
+- Log-scale spectrum
+- Difference highlighting
 
 ---
 
-## 🖥️ Demo UI
+## 🖥️ Demo (Local)
 
-* Upload your mix + reference
-* Click **Analyze**
-* Get:
+```bash
+pip install -r requirements.txt
+streamlit run src/app.py
 
-  * Mix scores
-  * Visual spectrum
-  * AI insights
+📂 Project Structure
 
----
-
-## 🛠️ Tech Stack
-
-* Python 🐍
-* Streamlit ⚡
-* Librosa 🎵
-* NumPy
-* Matplotlib
-
----
-
-## 📂 Project Structure
-
-```
-mixing-ai-plugin/
+plugin/
 │
 ├── src/
-│   ├── app.py              # Streamlit UI
-│   ├── analysis.py         # Core intelligence engine
-│   ├── audio_loader.py     # Audio processing
+│   ├── app.py
+│   ├── analysis.py
+│   ├── audio_loader.py
 │
-├── outputs/                # Generated spectrum plots
-├── README.md
-└── requirements.txt
-```
+├── outputs/
+├── requirements.txt
+└── README.md
 
----
 
-## ⚙️ Installation
+⚠️ Status
 
-```bash
-git clone https://github.com/YOUR_USERNAME/mixing-ai-plugin.git
-cd mixing-ai-plugin
+🚧 Pre-release (V2.6)
 
-python -m venv venv
-venv\Scripts\activate   # Windows
+Core engine is stable, but still evolving.
 
-pip install -r requirements.txt
-```
+🧠 Vision
 
----
+To build an intelligent mixing assistant that:
+Analyzes mixes like an engineer
+Explains problems clearly
+Helps users learn, not just fix
 
-## ▶️ Run the App
+🚀 Roadmap
 
-```bash
-streamlit run src/app.py
-```
+V3
+AI Chat Assistant
+Interactive explanations
+V4
+Stereo + Phase Analysis
+Dynamic range detection
+Future
+DAW Plugin (VST)
+Cloud-based analysis
 
-Open in browser:
+👨‍💻 Author
 
-```
-http://localhost:8501
-```
-
----
-
-## 🧠 How it Works
-
-1. Convert audio → frequency spectrum (FFT)
-2. Split into perceptual bands:
-
-   * Low (20–120 Hz)
-   * Low-Mid (200–500 Hz)
-   * Presence (2k–5k Hz)
-3. Compare with reference track
-4. Generate:
-
-   * Scores
-   * Differences
-   * AI-based insights
-
----
-
-## 📈 Current Version
-
-**v2.2 — Intelligence Layer**
-
-✅ Spectrum analysis
-✅ Reference matching
-✅ Smart scoring
-✅ AI insights (WHY + FIX)
-
----
-
-## 🔮 Roadmap
-
-### 🔜 v3 (Next Phase)
-
-* Chat-based assistant (“Why is my mix bad?”)
-* Better masking detection
-* Genre-aware analysis
-
-### 🚀 Future Vision
-
-* DAW Plugin (VST)
-* Real-time mix feedback
-* ML-based perception modeling
-
----
-
-## 💡 Why this matters
-
-Most tools show you data.
-
-This tool tells you:
-
-> **what to do with that data**
-
----
-
-## 🤝 Contributing
-
-Open to collaborations, especially in:
-
-* Audio engineering
-* Machine learning
-* Plugin development
-
----
-
-## 📬 Contact
-
-**Sreeharan M Anilkumar**
-🎵 Audio + AI Builder
-
----
-
-## ⭐ If you like this project
-
-Give it a star — it helps a lot 🚀
-
----
+Sreeharan M Anilkumar
