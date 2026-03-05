@@ -1,44 +1,35 @@
-# 🎧 AI Mixing Assistant
+# 🎧 AI Mixing Diagnostic Engine
 
-An intelligent audio analysis tool that helps producers improve their mixes using perceptual analysis, reference comparison, and explainable insights.
+An AI-assisted audio mixing diagnostic tool that analyzes a mix
+against a reference track and identifies tonal imbalance, masking,
+dynamic issues, and stereo field problems.
+
+The system combines digital signal processing with a rule-based
+intelligence layer to generate actionable mix feedback.
 
 ---
 
 ## 🚀 Features
 
-### 🎧 Perceptual Audio Analysis
-- Frequency analysis aligned with human hearing
-- Smoothed spectrum for stable results
+• Multiband tonal analysis
+• Reference track comparison
+• Masking detection
+• Dynamic analysis (LUFS + crest factor)
+• Stereo field analysis
+• Spectrum comparison visualization
+• AI-generated mix insights
 
-### 📊 Multi-Band Scoring
-- Sub (20–60 Hz)
-- Low (60–120 Hz)
-- Low-Mid (120–400 Hz)
-- Mid (400–2k Hz)
-- Presence (2k–5k Hz)
-- Air (5k–10k Hz)
-
-### 🧠 Intelligent Feedback
-- Detects:
-  - Muddiness
-  - Low-end imbalance
-  - Low presence
-- Provides:
-  - Explanation (WHY)
-  - Actionable fix (HOW)
-
-### ⚡ Masking Detection
-Identifies frequency clashes where instruments overlap and lose clarity.
-
-### 🔊 Loudness Analysis (LUFS)
-Compares perceived loudness with reference tracks.
-
-### 🎯 Priority Engine
-Ranks issues based on severity and confidence to guide workflow.
-
-### 📉 Spectrum Visualization
-- Log-scale spectrum
-- Difference highlighting
+---
+## ARCHITECTURE
+Audio
+ ↓
+audio_loader.py
+ ↓
+analysis.py (DSP engine)
+ ↓
+intelligence.py (AI reasoning)
+ ↓
+app.py (Streamlit interface)
 
 ---
 
@@ -50,21 +41,20 @@ streamlit run src/app.py
 
 📂 Project Structure
 
-plugin/
+project/
 │
-├── src/
-│   ├── app.py
-│   ├── analysis.py
-│   ├── audio_loader.py
-│
-├── outputs/
+├── analysis.py        # DSP analysis engine
+├── intelligence.py    # AI reasoning layer
+├── audio_loader.py    # Audio IO
+├── app.py             # Streamlit UI
+├── main.py            # CLI test
 ├── requirements.txt
 └── README.md
 
 
 ⚠️ Status
 
-🚧 Pre-release (V2.6)
+release (V3.0)
 
 Core engine is stable, but still evolving.
 
@@ -77,12 +67,7 @@ Helps users learn, not just fix
 
 🚀 Roadmap
 
-V3
-AI Chat Assistant
-Interactive explanations
 V4
-Stereo + Phase Analysis
-Dynamic range detection
 Future
 DAW Plugin (VST)
 Cloud-based analysis
