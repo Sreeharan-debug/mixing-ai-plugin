@@ -1,174 +1,266 @@
 import numpy as np
 import librosa
 import matplotlib.pyplot as plt
-import os
 import pyloudnorm as pyln
 
 
-def analyze_mix(y1, sr1, y2, sr2, output_dir="outputs"):
-    os.makedirs(output_dir, exist_ok=True)
+# ---------- UTILITIES ----------
 
-    # ---------- NORMALIZE ----------
-    y1 = y1 / np.max(np.abs(y1))
-    y2 = y2 / np.max(np.abs(y2))
+def to_mono(y):
+    return np.mean(y, axis=0)
 
-    # ---------- SPECTRUM ----------
-    def get_spectrum(y, sr):
-        n_fft = 4096
 
-        S = np.abs(librosa.stft(y, n_fft=n_fft))
-        S_db = librosa.amplitude_to_db(S, ref=np.max)
+def smooth_spectrum(spec, window=15):
 
-        avg = np.mean(S_db, axis=1)
-        avg = np.convolve(avg, np.ones(20)/20, mode='same')
+    kernel = np.ones(window) / window
+    return np.convolve(spec, kernel, mode="same")
 
-        freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
-        return freqs, avg
 
-    f1, s1 = get_spectrum(y1, sr1)
-    f2, s2 = get_spectrum(y2, sr2)
+# ---------- PERCEPTUAL WEIGHTING ----------
 
-    # ---------- ALIGN ----------
-    min_len = min(len(s1), len(s2))
-    s1, s2 = s1[:min_len], s2[:min_len]
-    f1 = f1[:min_len]
+def perceptual_weight(freqs):
 
-    # ---------- PERCEPTUAL ----------
-    w = 1 / (1 + (f1 / 1000)**2)
-    s1 *= w
-    s2 *= w
+    weights = np.ones_like(freqs)
 
-    # ---------- BAND ENERGY ----------
-    def band_energy(freqs, spec, low, high):
-        mask = (freqs >= low) & (freqs <= high)
-        if np.sum(mask) == 0:
-            return 0
-        return np.median(spec[mask])
+    for i, f in enumerate(freqs):
+
+        if f < 100:
+            weights[i] = 0.6
+        elif f < 400:
+            weights[i] = 0.8
+        elif f < 4000:
+            weights[i] = 1.2
+        elif f < 10000:
+            weights[i] = 1.0
+        else:
+            weights[i] = 0.8
+
+    return weights
+
+
+# ---------- SPECTRUM ----------
+
+def compute_spectrum(y, sr):
+
+    S = np.abs(librosa.stft(y, n_fft=4096))
+
+    S = np.mean(S, axis=1)
+
+    S = librosa.amplitude_to_db(S)
+
+    freqs = librosa.fft_frequencies(sr=sr, n_fft=4096)
+
+    S = smooth_spectrum(S)
+
+    return freqs, S
+
+
+# ---------- MULTIBAND ----------
+
+def band_energy(freqs, spec, low, high):
+
+    mask = (freqs >= low) & (freqs <= high)
+
+    return np.mean(spec[mask])
+
+
+def multiband_analysis(freqs, user_spec, ref_spec):
 
     bands = {
         "sub": (20, 60),
         "low": (60, 120),
-        "lowmid": (120, 400),
+        "low_mid": (120, 400),
         "mid": (400, 2000),
-        "presence": (2000, 5000),
-        "air": (5000, 10000)
+        "presence": (2000, 6000),
+        "air": (6000, 16000)
     }
 
-    user_vals = {b: band_energy(f1, s1, *bands[b]) for b in bands}
-    ref_vals = {b: band_energy(f1, s2, *bands[b]) for b in bands}
+    scores = {}
 
-    # ---------- SCORE ----------
-    def score(u, r):
-        return max(0, 100 * np.exp(-abs(u - r) / 10))
+    for name, (lo, hi) in bands.items():
 
-    scores = {b: round(score(user_vals[b], ref_vals[b]), 1) for b in bands}
-    scores["overall"] = round(np.mean(list(scores.values())), 1)
-    scores["match"] = scores["overall"]
+        u = band_energy(freqs, user_spec, lo, hi)
+        r = band_energy(freqs, ref_spec, lo, hi)
 
-    # ---------- NORMALIZED DIFF ----------
-    def norm_diff(u, r):
-        return (u - r) / (abs(r) + 1e-6)
+        diff = abs(u - r)
 
-    diffs = {b: norm_diff(user_vals[b], ref_vals[b]) for b in bands}
+        score = max(0, 100 - diff * 3)
 
-    issues = []
+        scores[name] = round(score, 1)
 
-    # ---------- CORE ISSUES ----------
-    if diffs["lowmid"] > 0.15:
-        issues.append({
-            "type": "Muddiness",
-            "range": "120–400 Hz",
-            "severity": "High",
-            "confidence": round(abs(diffs["lowmid"]) * 100, 1),
-            "why": "Excess low-mid energy reduces clarity.",
-            "fix": "Cut 200–350 Hz."
+    return scores
+
+
+# ---------- WEIGHTED OVERALL SCORE ----------
+
+def weighted_score(scores):
+
+    weights = {
+        "sub": 0.15,
+        "low": 0.2,
+        "low_mid": 0.2,
+        "mid": 0.2,
+        "presence": 0.15,
+        "air": 0.1
+    }
+
+    total = 0
+
+    for band in weights:
+
+        total += scores[band] * weights[band]
+
+    return round(total, 1)
+
+
+# ---------- MASKING DETECTION ----------
+
+def masking_detection(freqs, user_spec):
+
+    mask_regions = []
+
+    low_mid_energy = band_energy(freqs, user_spec, 200, 400)
+
+    mid_energy = band_energy(freqs, user_spec, 1000, 3000)
+
+    if low_mid_energy > mid_energy + 6:
+
+        mask_regions.append({
+            "type": "Low-Mid Masking",
+            "fix": "Reduce 200-400Hz congestion"
         })
 
-    if abs(diffs["low"]) > 0.15:
-        issues.append({
-            "type": "Low-End Imbalance",
-            "range": "60–120 Hz",
-            "severity": "Medium",
-            "confidence": round(abs(diffs["low"]) * 100, 1),
-            "why": "Kick and bass are unbalanced.",
-            "fix": "Use EQ or sidechain."
-        })
+    high_energy = band_energy(freqs, user_spec, 4000, 7000)
 
-    if diffs["presence"] < -0.15:
-        issues.append({
-            "type": "Low Presence",
-            "range": "2k–5k Hz",
-            "severity": "Medium",
-            "confidence": round(abs(diffs["presence"]) * 100, 1),
-            "why": "Mix lacks clarity.",
-            "fix": "Boost 3–5 kHz."
-        })
+    if high_energy > 0:
 
-    # ---------- MASKING ----------
-    def detect_masking(freqs, u, r):
-        res = []
-        diff = u - r
+        if high_energy > mid_energy + 10:
 
-        regions = {
-            "Low-Mid Masking": (120, 400),
-            "Mid Masking": (400, 2000),
-            "Presence Masking": (2000, 5000)
-        }
+            mask_regions.append({
+                "type": "Harsh Presence",
+                "fix": "Reduce 4-6kHz"
+            })
 
-        for name, (l, h) in regions.items():
-            mask = (freqs >= l) & (freqs <= h)
-            if np.sum(mask) == 0:
-                continue
+    return mask_regions
 
-            d = np.mean(diff[mask])
 
-            if d > 3:
-                res.append({
-                    "type": name,
-                    "range": f"{l}–{h} Hz",
-                    "severity": "High" if d > 6 else "Medium",
-                    "confidence": round(d * 10, 1),
-                    "why": "Frequency overlap causing masking.",
-                    "fix": "Use EQ separation."
-                })
-        return res
+# ---------- DYNAMICS ----------
 
-    issues.extend(detect_masking(f1, s1, s2))
+def dynamic_analysis(y, sr):
 
-    # ---------- LUFS ----------
-    meter = pyln.Meter(sr1)
-    user_lufs = meter.integrated_loudness(y1)
-    ref_lufs = meter.integrated_loudness(y2)
+    meter = pyln.Meter(sr)
 
-    if abs(user_lufs - ref_lufs) > 2:
-        issues.append({
-            "type": "Loudness Mismatch",
-            "range": "Full",
-            "severity": "High",
-            "confidence": round(abs(user_lufs - ref_lufs) * 10, 1),
-            "why": "Loudness differs from reference.",
-            "fix": "Adjust limiter.",
-            "value": f"{user_lufs:.1f} vs {ref_lufs:.1f} LUFS"
-        })
+    loudness = meter.integrated_loudness(y)
 
-    # ---------- PRIORITY ----------
-    def rank(i):
-        return (50 if i["severity"] == "High" else 30) + i["confidence"]
+    rms = np.sqrt(np.mean(y**2))
+    peak = np.max(np.abs(y))
 
-    issues = sorted(issues, key=rank, reverse=True)
-    priority = issues[0] if issues else None
+    crest = peak / (rms + 1e-8)
 
-    # ---------- PLOT ----------
-    diff_curve = s1 - s2
+    return {
+        "crest_factor": round(crest, 2),
+        "lufs": round(loudness, 2)
+    }
+
+
+# ---------- STEREO ----------
+
+def stereo_analysis(y):
+
+    L = y[0]
+    R = y[1]
+
+    mid = (L + R) / 2
+    side = (L - R) / 2
+
+    width = np.mean(side**2) / (np.mean(mid**2) + 1e-8)
+
+    phase = np.corrcoef(L, R)[0, 1]
+
+    mono = 100 - np.mean(np.abs(side)) * 100
+
+    return {
+        "stereo_width": round(width, 3),
+        "phase_corr": round(phase, 3),
+        "mono_compatibility": round(mono, 2)
+    }
+
+
+# ---------- SEGMENTATION ----------
+
+def segmentation(y, sr):
+
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+
+    frames = librosa.onset.onset_detect(onset_envelope=onset_env, sr=sr)
+
+    times = librosa.frames_to_time(frames, sr=sr)
+
+    return times[:10]
+
+
+# ---------- SPECTRUM PLOT ----------
+
+def plot_spectrum(freqs, user_spec, ref_spec):
 
     plt.figure(figsize=(10, 5))
-    plt.semilogx(f1, s1, label="User")
-    plt.semilogx(f1, s2, label="Reference")
-    plt.fill_between(f1, diff_curve, alpha=0.2)
+
+    plt.semilogx(freqs, user_spec, label="User")
+    plt.semilogx(freqs, ref_spec, label="Reference")
+
+    plt.xlabel("Frequency (Hz)")
+    plt.ylabel("dB")
+
+    plt.title("Spectrum Comparison")
+
     plt.legend()
 
-    plot_path = os.path.join(output_dir, "spectrum.png")
-    plt.savefig(plot_path)
+    path = "spectrum.png"
+
+    plt.savefig(path)
+
     plt.close()
 
-    return {"issues": issues, "priority": priority}, scores, plot_path
+    return path
+
+
+# ---------- MAIN ENGINE ----------
+
+def analyze_mix(y1, sr1, y2, sr2):
+
+    user = to_mono(y1)
+    ref = to_mono(y2)
+
+    freqs, user_spec = compute_spectrum(user, sr1)
+    _, ref_spec = compute_spectrum(ref, sr2)
+
+    scores = multiband_analysis(freqs, user_spec, ref_spec)
+
+    overall = weighted_score(scores)
+
+    scores["overall"] = overall
+    scores["match"] = overall
+
+    dynamics = dynamic_analysis(user, sr1)
+
+    spatial = stereo_analysis(y1)
+
+    segments = segmentation(user, sr1)
+
+    masking = masking_detection(freqs, user_spec)
+
+    issues = masking
+
+    priority = issues[0] if issues else None
+
+    plot = plot_spectrum(freqs, user_spec, ref_spec)
+
+    results = {
+        "dynamics": dynamics,
+        "spatial": spatial,
+        "segments": segments,
+        "issues": issues,
+        "priority": priority
+    }
+
+    return results, scores, plot
